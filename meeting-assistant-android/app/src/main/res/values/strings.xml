@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Meeting Assistant</string>
+    <string name="notification_channel_name">Meeting capture</string>
+    <string name="notification_channel_description">Realtime offline meeting transcription and summary</string>
+    <string name="notification_title">Meeting in progress</string>
+    <string name="notification_text">Recording, transcribing, and generating notes locally</string>
+</resources>
