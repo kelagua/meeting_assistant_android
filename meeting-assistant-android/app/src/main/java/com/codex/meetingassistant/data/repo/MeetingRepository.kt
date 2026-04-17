@@ -261,20 +261,30 @@ class DefaultMeetingRepository(
             database.transcriptDao().observeSegments(meetingId),
             database.speakerAssignmentDao().observeAssignments(meetingId),
             database.chunkSummaryDao().observeChunkSummaries(meetingId),
-            database.meetingSummaryDao().observeMeetingSummary(meetingId),
-            database.speakerProfileDao().observeProfiles(),
-        ) { meeting, audio, segments, assignments, chunks, summary, profiles ->
-            val meetingEntity = meeting ?: return@combine null
-            MeetingDetail(
-                meeting = meetingEntity.toDomain(),
-                audioAsset = audio?.toDomain(),
-                transcriptSegments = segments.map { it.toDomain() },
-                speakerProfiles = profiles.map { it.toDomain() },
-                speakerAssignments = assignments.map { it.toDomain() },
-                chunkSummaries = chunks.map { it.toDomain() },
-                meetingSummary = summary?.toDomain(),
+        ) { meeting, audio, segments, assignments, chunks ->
+            MeetingDetailCore(
+                meeting = meeting,
+                audio = audio,
+                segments = segments,
+                assignments = assignments,
+                chunks = chunks,
             )
         }
+            .combine(database.meetingSummaryDao().observeMeetingSummary(meetingId)) { core, summary ->
+                core to summary
+            }
+            .combine(database.speakerProfileDao().observeProfiles()) { (core, summary), profiles ->
+                val meetingEntity = core.meeting ?: return@combine null
+                MeetingDetail(
+                    meeting = meetingEntity.toDomain(),
+                    audioAsset = core.audio?.toDomain(),
+                    transcriptSegments = core.segments.map { it.toDomain() },
+                    speakerProfiles = profiles.map { it.toDomain() },
+                    speakerAssignments = core.assignments.map { it.toDomain() },
+                    chunkSummaries = core.chunks.map { it.toDomain() },
+                    meetingSummary = summary?.toDomain(),
+                )
+            }
 
     private fun Flow<List<SpeakerProfileEntity>>.mapProfiles(): Flow<List<SpeakerProfile>> =
         map { entities -> entities.map { it.toDomain() } }
@@ -501,6 +511,14 @@ class DefaultMeetingRepository(
             ).build()
     }
 }
+
+private data class MeetingDetailCore(
+    val meeting: MeetingEntity?,
+    val audio: AudioAssetEntity?,
+    val segments: List<TranscriptSegmentEntity>,
+    val assignments: List<SpeakerAssignmentEntity>,
+    val chunks: List<ChunkSummaryEntity>,
+)
 
 data class RuntimeRecommendation(
     val livePack: ModelPack?,

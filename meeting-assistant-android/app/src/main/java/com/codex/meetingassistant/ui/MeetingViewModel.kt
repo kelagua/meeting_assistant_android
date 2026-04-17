@@ -39,6 +39,17 @@ data class MeetingAssistantUiState(
     val statusMessage: String? = null,
 )
 
+private data class UiStateInputs(
+    val selectedTab: AppTab,
+    val latestMeeting: MeetingDetail?,
+    val speakerProfiles: List<SpeakerProfile>,
+    val modelPacks: List<ModelPack>,
+    val recognizerLabel: String,
+    val liveSummariesEnabled: Boolean,
+    val speakerIdentificationEnabled: Boolean,
+    val lastExportPath: String?,
+)
+
 class MeetingViewModel(
     private val container: AppContainer,
 ) : ViewModel() {
@@ -52,18 +63,28 @@ class MeetingViewModel(
         container.meetingRepository.speakerProfiles,
         container.meetingRepository.modelPacks,
         container.sessionCoordinator.runtimeState,
-        statusMessage,
-    ) { tab, meeting, speakers, modelPacks, runtimeState, message ->
-        MeetingAssistantUiState(
+    ) { tab, meeting, speakers, modelPacks, runtimeState ->
+        UiStateInputs(
             selectedTab = tab,
             latestMeeting = meeting,
             speakerProfiles = speakers,
             modelPacks = modelPacks,
-            deviceProfile = deviceProfile.value,
             recognizerLabel = runtimeState.recognizerLabel,
             liveSummariesEnabled = runtimeState.liveSummariesEnabled,
             speakerIdentificationEnabled = runtimeState.speakerIdentificationEnabled,
             lastExportPath = runtimeState.lastExportPath,
+        )
+    }.combine(statusMessage) { inputs, message ->
+        MeetingAssistantUiState(
+            selectedTab = inputs.selectedTab,
+            latestMeeting = inputs.latestMeeting,
+            speakerProfiles = inputs.speakerProfiles,
+            modelPacks = inputs.modelPacks,
+            deviceProfile = deviceProfile.value,
+            recognizerLabel = inputs.recognizerLabel,
+            liveSummariesEnabled = inputs.liveSummariesEnabled,
+            speakerIdentificationEnabled = inputs.speakerIdentificationEnabled,
+            lastExportPath = inputs.lastExportPath,
             statusMessage = message,
         )
     }.stateIn(
