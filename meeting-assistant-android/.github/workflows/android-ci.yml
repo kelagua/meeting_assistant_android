@@ -4,7 +4,9 @@ on:
   push:
     branches:
       - main
+      - codex/meeting-assistant-android-mvp
   pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read
