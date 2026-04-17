@@ -48,7 +48,10 @@ class AppContainer(application: Application) {
         settingsRepository = settingsRepository,
         modelPackManager = modelPackManager,
         modelRuntime = modelRuntime,
-        audioCaptureEngine = AudioRecordCaptureEngine(scope = sessionCoordinatorScope),
+        audioCaptureEngine = AudioRecordCaptureEngine(
+            context = application,
+            scope = sessionCoordinatorScope,
+        ),
         speechRecognizer = DemoSpeechRecognizer(scope = sessionCoordinatorScope),
         speakerIdentificationEngine = DemoSpeakerIdentificationEngine(),
         cryptoBox = cryptoBox,

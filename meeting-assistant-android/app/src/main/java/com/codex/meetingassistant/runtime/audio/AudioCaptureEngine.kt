@@ -1,9 +1,13 @@
 package com.codex.meetingassistant.runtime.audio
 
+import android.Manifest
+import android.content.Context
+import android.content.pm.PackageManager
 import android.media.AudioFormat
 import android.media.AudioRecord
 import android.media.MediaRecorder
 import android.os.SystemClock
+import androidx.core.content.ContextCompat
 import java.io.File
 import java.io.FileOutputStream
 import kotlinx.coroutines.CoroutineScope
@@ -76,6 +80,7 @@ interface AudioCaptureEngine {
 }
 
 class AudioRecordCaptureEngine(
+    private val context: Context,
     private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO),
     private val ringBuffer: CircularAudioBuffer = CircularAudioBuffer(capacityBytes = 16_000 * 2 * 90),
 ) : AudioCaptureEngine {
@@ -95,23 +100,48 @@ class AudioRecordCaptureEngine(
 
     override suspend fun start(tempFile: File) {
         if (captureJob != null) return
+        if (
+            ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) !=
+            PackageManager.PERMISSION_GRANTED
+        ) {
+            throw IllegalStateException(
+                "RECORD_AUDIO permission is required before starting audio capture.",
+            )
+        }
 
         val minBufferSize = AudioRecord.getMinBufferSize(
             SAMPLE_RATE,
             AudioFormat.CHANNEL_IN_MONO,
             AudioFormat.ENCODING_PCM_16BIT,
         )
-        val record = AudioRecord(
-            MediaRecorder.AudioSource.VOICE_RECOGNITION,
-            SAMPLE_RATE,
-            AudioFormat.CHANNEL_IN_MONO,
-            AudioFormat.ENCODING_PCM_16BIT,
-            maxOf(minBufferSize, FRAME_BYTES * 2),
-        )
+        val record = try {
+            AudioRecord(
+                MediaRecorder.AudioSource.VOICE_RECOGNITION,
+                SAMPLE_RATE,
+                AudioFormat.CHANNEL_IN_MONO,
+                AudioFormat.ENCODING_PCM_16BIT,
+                maxOf(minBufferSize, FRAME_BYTES * 2),
+            )
+        } catch (securityException: SecurityException) {
+            throw IllegalStateException(
+                "RECORD_AUDIO permission is required before starting audio capture.",
+                securityException,
+            )
+        }
         this.tempFile = tempFile
         recorder = record
         startElapsedMs = SystemClock.elapsedRealtime()
-        record.startRecording()
+        try {
+            record.startRecording()
+        } catch (securityException: SecurityException) {
+            record.release()
+            recorder = null
+            this.tempFile = null
+            throw IllegalStateException(
+                "Audio capture could not start because RECORD_AUDIO permission was denied.",
+                securityException,
+            )
+        }
 
         captureJob = scope.launch {
             FileOutputStream(tempFile).use { output ->
