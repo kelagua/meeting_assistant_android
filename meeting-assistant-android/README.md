@@ -63,7 +63,7 @@
 - `gradlew.bat`
 - `gradle/wrapper/gradle-wrapper.jar`
 - `gradle/wrapper/gradle-wrapper.properties`
-- `.github/workflows/android-ci.yml`
+- 仓库根目录 `.github/workflows/android-ci.yml`
 
 推到 GitHub 后，`main` 分支和 Pull Request 会自动执行：
 
