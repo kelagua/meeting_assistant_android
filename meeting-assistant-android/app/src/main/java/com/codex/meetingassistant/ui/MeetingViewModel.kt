@@ -57,37 +57,48 @@ class MeetingViewModel(
     private val statusMessage = MutableStateFlow<String?>(null)
     private val deviceProfile = MutableStateFlow(container.benchmarkSelector.profile())
 
-    val uiState: StateFlow<MeetingAssistantUiState> = combine(
-        selectedTab,
-        container.meetingRepository.latestMeetingDetail,
-        container.meetingRepository.speakerProfiles,
-        container.meetingRepository.modelPacks,
-        container.sessionCoordinator.runtimeState,
-    ) { tab, meeting, speakers, modelPacks, runtimeState ->
-        UiStateInputs(
-            selectedTab = tab,
-            latestMeeting = meeting,
-            speakerProfiles = speakers,
-            modelPacks = modelPacks,
-            recognizerLabel = runtimeState.recognizerLabel,
-            liveSummariesEnabled = runtimeState.liveSummariesEnabled,
-            speakerIdentificationEnabled = runtimeState.speakerIdentificationEnabled,
-            lastExportPath = runtimeState.lastExportPath,
-        )
-    }.combine(statusMessage) { inputs, message ->
-        MeetingAssistantUiState(
-            selectedTab = inputs.selectedTab,
-            latestMeeting = inputs.latestMeeting,
-            speakerProfiles = inputs.speakerProfiles,
-            modelPacks = inputs.modelPacks,
-            deviceProfile = deviceProfile.value,
-            recognizerLabel = inputs.recognizerLabel,
-            liveSummariesEnabled = inputs.liveSummariesEnabled,
-            speakerIdentificationEnabled = inputs.speakerIdentificationEnabled,
-            lastExportPath = inputs.lastExportPath,
-            statusMessage = message,
-        )
-    }.stateIn(
+    val uiState: StateFlow<MeetingAssistantUiState> = selectedTab
+        .combine(container.meetingRepository.latestMeetingDetail) { tab, meeting ->
+            UiStateInputs(
+                selectedTab = tab,
+                latestMeeting = meeting,
+                speakerProfiles = emptyList(),
+                modelPacks = emptyList(),
+                recognizerLabel = "idle",
+                liveSummariesEnabled = true,
+                speakerIdentificationEnabled = true,
+                lastExportPath = null,
+            )
+        }
+        .combine(container.meetingRepository.speakerProfiles) { inputs, speakers ->
+            inputs.copy(speakerProfiles = speakers)
+        }
+        .combine(container.meetingRepository.modelPacks) { inputs, modelPacks ->
+            inputs.copy(modelPacks = modelPacks)
+        }
+        .combine(container.sessionCoordinator.runtimeState) { inputs, runtimeState ->
+            inputs.copy(
+                recognizerLabel = runtimeState.recognizerLabel,
+                liveSummariesEnabled = runtimeState.liveSummariesEnabled,
+                speakerIdentificationEnabled = runtimeState.speakerIdentificationEnabled,
+                lastExportPath = runtimeState.lastExportPath,
+            )
+        }
+        .combine(statusMessage) { inputs, message ->
+            MeetingAssistantUiState(
+                selectedTab = inputs.selectedTab,
+                latestMeeting = inputs.latestMeeting,
+                speakerProfiles = inputs.speakerProfiles,
+                modelPacks = inputs.modelPacks,
+                deviceProfile = deviceProfile.value,
+                recognizerLabel = inputs.recognizerLabel,
+                liveSummariesEnabled = inputs.liveSummariesEnabled,
+                speakerIdentificationEnabled = inputs.speakerIdentificationEnabled,
+                lastExportPath = inputs.lastExportPath,
+                statusMessage = message,
+            )
+        }
+        .stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5_000),
         initialValue = MeetingAssistantUiState(),

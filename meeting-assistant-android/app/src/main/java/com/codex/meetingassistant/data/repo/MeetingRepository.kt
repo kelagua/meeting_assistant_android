@@ -255,21 +255,26 @@ class DefaultMeetingRepository(
     }
 
     private fun observeMeetingDetail(meetingId: String): Flow<MeetingDetail?> =
-        combine(
-            database.meetingDao().observeMeeting(meetingId),
-            database.audioAssetDao().observeAsset(meetingId),
-            database.transcriptDao().observeSegments(meetingId),
-            database.speakerAssignmentDao().observeAssignments(meetingId),
-            database.chunkSummaryDao().observeChunkSummaries(meetingId),
-        ) { meeting, audio, segments, assignments, chunks ->
-            MeetingDetailCore(
-                meeting = meeting,
-                audio = audio,
-                segments = segments,
-                assignments = assignments,
-                chunks = chunks,
-            )
-        }
+        database.meetingDao()
+            .observeMeeting(meetingId)
+            .combine(database.audioAssetDao().observeAsset(meetingId)) { meeting, audio ->
+                MeetingDetailCore(
+                    meeting = meeting,
+                    audio = audio,
+                    segments = emptyList(),
+                    assignments = emptyList(),
+                    chunks = emptyList(),
+                )
+            }
+            .combine(database.transcriptDao().observeSegments(meetingId)) { core, segments ->
+                core.copy(segments = segments)
+            }
+            .combine(database.speakerAssignmentDao().observeAssignments(meetingId)) { core, assignments ->
+                core.copy(assignments = assignments)
+            }
+            .combine(database.chunkSummaryDao().observeChunkSummaries(meetingId)) { core, chunks ->
+                core.copy(chunks = chunks)
+            }
             .combine(database.meetingSummaryDao().observeMeetingSummary(meetingId)) { core, summary ->
                 core to summary
             }
