@@ -169,7 +169,7 @@ class AudioRecordCaptureEngine(
 
     override suspend fun stop(): CapturedAudioSession? {
         val file = tempFile ?: return null
-        recorder?.stop()
+        runCatching { recorder?.stop() }
         captureJob?.cancelAndJoin()
         captureJob = null
         recorder?.release()

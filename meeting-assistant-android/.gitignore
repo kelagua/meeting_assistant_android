@@ -1,0 +1,35 @@
+# Gradle
+.gradle/
+.kotlin/
+build/
+!build.gradle.kts
+!settings.gradle.kts
+
+# Android
+.android-home/
+.gradle-home/
+app/build/
+app/src/main/assets/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.claude/
+.playwright-mcp/
+
+# Local config
+local.properties
+*.keystore
+*.jks
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temp files
+*.tmp
+tmp/

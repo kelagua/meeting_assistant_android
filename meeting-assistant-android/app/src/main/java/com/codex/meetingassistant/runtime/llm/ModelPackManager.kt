@@ -23,10 +23,42 @@ class ModelPackManager(
             SummaryStage.LIVE_NOTES -> preferences.selectedLivePackId
             SummaryStage.FINAL_SUMMARY -> preferences.selectedFinalPackId
         }
-        return benchmarkSelector.choosePack(
-            modelPacks = packs,
-            stage = stage,
-            preferredPackId = preferred,
-        )
+        val localPacks = packs.filter { it.stage == stage && !it.localFilePath.isNullOrBlank() }
+        return if (localPacks.isNotEmpty()) {
+            benchmarkSelector.choosePack(
+                modelPacks = localPacks,
+                stage = stage,
+                preferredPackId = preferred,
+            ) ?: benchmarkSelector.choosePack(
+                modelPacks = packs,
+                stage = stage,
+                preferredPackId = preferred,
+            )
+        } else {
+            val anyLocalPack = chooseBestLocalPack(packs, preferred)
+            anyLocalPack ?: benchmarkSelector.choosePack(
+                modelPacks = packs,
+                stage = stage,
+                preferredPackId = preferred,
+            )
+        }
+    }
+
+    private fun chooseBestLocalPack(
+        packs: List<ModelPack>,
+        preferredPackId: String?,
+    ): ModelPack? {
+        val localPacks = packs.filter { !it.localFilePath.isNullOrBlank() }
+        if (localPacks.isEmpty()) return null
+
+        preferredPackId?.let { preferredId ->
+            localPacks.firstOrNull { it.id == preferredId }?.let { return it }
+        }
+
+        val profile = benchmarkSelector.profile()
+        return localPacks
+            .filter { pack -> profile.ramGb >= pack.minRamGb && profile.score >= pack.minScore }
+            .maxByOrNull { it.estimatedSizeMb }
+            ?: localPacks.minByOrNull { it.estimatedSizeMb }
     }
 }

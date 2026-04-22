@@ -1,6 +1,7 @@
 package com.codex.meetingassistant.service
 
 import android.content.Context
+import android.util.Log
 import com.codex.meetingassistant.data.crypto.CryptoBox
 import com.codex.meetingassistant.data.model.ExportFormat
 import com.codex.meetingassistant.data.model.Meeting
@@ -35,6 +36,7 @@ data class SessionRuntimeState(
     val liveSummariesEnabled: Boolean = true,
     val speakerIdentificationEnabled: Boolean = true,
     val lastExportPath: String? = null,
+    val lastError: String? = null,
 )
 
 class MeetingSessionCoordinator(
@@ -61,32 +63,40 @@ class MeetingSessionCoordinator(
     suspend fun start(meeting: Meeting) = sessionMutex.withLock {
         stopLocked()
         modelPackManager.ensureSeededPacks()
-        repository.updateMeetingStatus(meeting.id, MeetingStatus.LIVE)
         activeMeeting = meeting
         lastChunkBoundaryMs = 0L
         tempAudioFile = File(context.cacheDir, "${meeting.id}.pcm")
-        audioCaptureEngine.start(tempAudioFile ?: error("Temp file unavailable"))
-        speechRecognizer.start(RecognitionConfig(meetingId = meeting.id))
+        try {
+            audioCaptureEngine.start(tempAudioFile ?: error("Temp file unavailable"))
+            speechRecognizer.start(RecognitionConfig(meetingId = meeting.id))
+            repository.updateMeetingStatus(meeting.id, MeetingStatus.LIVE)
 
-        _runtimeState.value = SessionRuntimeState(
-            activeMeetingId = meeting.id,
-            recognizerLabel = speechRecognizer.engineLabel,
-        )
+            _runtimeState.value = SessionRuntimeState(
+                activeMeetingId = meeting.id,
+                recognizerLabel = speechRecognizer.engineLabel,
+            )
+            Log.i(TAG, "Meeting capture started for ${meeting.id} with ${speechRecognizer.engineLabel}")
 
-        sessionJob = scope.launch {
-            launch {
-                audioCaptureEngine.audioFrames.collect { frame ->
-                    speechRecognizer.accept(frame)
-                    maybeDegrade()
+            sessionJob = scope.launch {
+                launch {
+                    audioCaptureEngine.audioFrames.collect { frame ->
+                        speechRecognizer.accept(frame)
+                        maybeDegrade()
+                    }
+                }
+                launch {
+                    speechRecognizer.transcriptEvents.collect { segment ->
+                        repository.appendTranscriptSegment(segment)
+                        if (segment.isFinal) {
+                            maybeMatchSpeaker(segment.speakerLabel)
+                            maybeGenerateChunkSummary(meeting.id)
+                        }
+                    }
                 }
             }
-            launch {
-                speechRecognizer.transcriptEvents.collect { segment ->
-                    repository.appendTranscriptSegment(segment)
-                    maybeMatchSpeaker(segment.speakerLabel)
-                    maybeGenerateChunkSummary(meeting.id)
-                }
-            }
+        } catch (error: Throwable) {
+            handleStartFailure(meeting, error)
+            throw error
         }
     }
 
@@ -102,7 +112,13 @@ class MeetingSessionCoordinator(
         val capturedAudio = audioCaptureEngine.stop()
         val finalizedSegments = speechRecognizer.finalizeSegments()
         speechRecognizer.stop()
-        finalizedSegments.forEach { repository.appendTranscriptSegment(it) }
+        finalizedSegments.forEach {
+            repository.appendTranscriptSegment(it)
+            if (it.isFinal) {
+                maybeMatchSpeaker(it.speakerLabel)
+                maybeGenerateChunkSummary(it.meetingId)
+            }
+        }
         if (meeting != null) {
             repository.updateMeetingStatus(meeting.id, MeetingStatus.PROCESSING)
             capturedAudio?.let { session ->
@@ -120,6 +136,31 @@ class MeetingSessionCoordinator(
         activeMeeting = null
         tempAudioFile = null
         _runtimeState.value = SessionRuntimeState()
+    }
+
+    private suspend fun handleStartFailure(meeting: Meeting, error: Throwable) {
+        Log.e(TAG, "Meeting capture failed to start for ${meeting.id}", error)
+        runCatching { audioCaptureEngine.stop() }
+        runCatching { speechRecognizer.stop() }
+        tempAudioFile?.let { file ->
+            runCatching {
+                if (file.exists()) {
+                    file.delete()
+                }
+            }
+        }
+        sessionJob = null
+        activeMeeting = null
+        tempAudioFile = null
+        lastChunkBoundaryMs = 0L
+        repository.updateMeetingStatus(
+            meeting.id,
+            MeetingStatus.FAILED,
+            endedAtEpochMs = System.currentTimeMillis(),
+        )
+        _runtimeState.value = SessionRuntimeState(
+            lastError = error.message ?: "Meeting capture could not start.",
+        )
     }
 
     suspend fun exportLatestMeeting(format: ExportFormat) {
@@ -220,5 +261,9 @@ class MeetingSessionCoordinator(
         }
         outputFile.writeText(cryptoBox.seal(tempFile.readBytes()))
         return outputFile.absolutePath
+    }
+
+    private companion object {
+        const val TAG = "MeetingSession"
     }
 }

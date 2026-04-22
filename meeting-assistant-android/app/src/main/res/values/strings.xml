@@ -1,8 +1,166 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- App & Notifications -->
     <string name="app_name">Meeting Assistant</string>
     <string name="notification_channel_name">Meeting capture</string>
     <string name="notification_channel_description">Realtime offline meeting transcription and summary</string>
     <string name="notification_title">Meeting in progress</string>
     <string name="notification_text">Recording, transcribing, and generating notes locally</string>
+    <string name="notification_channel_download_name">Model download</string>
+    <string name="notification_channel_download_description">Downloading AI models for offline summarization</string>
+
+    <!-- Navigation tabs -->
+    <string name="tab_home">Home</string>
+    <string name="tab_people">People</string>
+    <string name="tab_live">Live</string>
+    <string name="tab_notes">Notes</string>
+    <string name="tab_models">Models</string>
+
+    <!-- Setup screen -->
+    <string name="setup_hero_title">Offline Meeting Capture</string>
+    <string name="setup_hero_body">Grant permissions, confirm sherpa and LiteRT readiness, then start a meeting.</string>
+    <string name="device_profile">Device Profile</string>
+    <string name="memory">Memory</string>
+    <string name="cpu_cores">CPU cores</string>
+    <string name="abi">ABI</string>
+    <string name="device_score">Device score</string>
+    <string name="permissions">Permissions</string>
+    <string name="microphone">Microphone</string>
+    <string name="notifications">Notifications</string>
+    <string name="permission_granted_recording">Granted. Recording can start.</string>
+    <string name="permission_missing_mic">Missing. This is required to capture meeting audio.</string>
+    <string name="permission_granted_notif">Granted. Foreground capture notifications can stay visible.</string>
+    <string name="permission_missing_notif">Missing. Recommended so Android can keep the foreground service visible.</string>
+    <string name="permissions_all_ready">All requested permissions are ready.</string>
+    <string name="permissions_missing">Missing: %s</string>
+    <string name="request_permissions">Request Remaining Permissions</string>
+    <string name="runtime_readiness">Runtime Readiness</string>
+    <string name="asr">ASR</string>
+    <string name="speaker_id">Speaker ID</string>
+    <string name="llm">LLM</string>
+    <string name="live_pack">Live pack</string>
+    <string name="final_pack">Final pack</string>
+    <string name="last_error">Last capture error: %s</string>
+    <string name="quick_start">Quick Start</string>
+    <string name="meeting_running">A meeting is already running: %s</string>
+    <string name="open_live_console">Open Live Console</string>
+    <string name="meeting_title">Meeting title</string>
+    <string name="agenda_or_focus">Agenda or focus</string>
+    <string name="start_meeting_now">Start Meeting Now</string>
+    <string name="grant_mic_permission">Grant microphone permission first, then start the meeting.</string>
+    <string name="open_live_tab">Open Live Tab</string>
+
+    <!-- Speaker profiles screen -->
+    <string name="speakers_hero_title">Speaker Profiles</string>
+    <string name="speakers_hero_body">Record a short sample so anonymous labels can be matched to real people.</string>
+    <string name="speaker_runtime">Speaker runtime</string>
+    <string name="display_name">Display name</string>
+    <string name="keep_raw_enrollment_audio">Keep raw enrollment audio</string>
+    <string name="create_speaker_profile">Create Speaker Profile</string>
+    <string name="enrollment_count">Enrollment count: %d</string>
+    <string name="audio_retained">Raw audio samples are retained.</string>
+    <string name="audio_not_retained">Raw audio samples are not retained.</string>
+
+    <!-- Live meeting screen -->
+    <string name="live_hero_title">Live Capture</string>
+    <string name="live_hero_body">Start recording, watch live transcript updates, and stop when you want the final summary.</string>
+    <string name="start_meeting">Start Meeting</string>
+    <string name="mic_permission_missing">Microphone permission is still missing. Grant it from Setup first.</string>
+    <string name="meeting_status">Meeting status</string>
+    <string name="recognizer">Recognizer</string>
+    <string name="live_summaries">Live summaries</string>
+    <string name="speaker_identification">Speaker identification</string>
+    <string name="summary_runtime">Summary runtime</string>
+    <string name="paused">Paused</string>
+    <string name="running">Running</string>
+    <string name="enabled">Enabled</string>
+    <string name="temporarily_degraded">Temporarily degraded</string>
+    <string name="resume_live_notes">Resume Live Notes</string>
+    <string name="pause_live_notes">Pause Live Notes</string>
+    <string name="stop_meeting">Stop Meeting</string>
+    <string name="manual_speaker_corrections">Manual Speaker Corrections</string>
+    <string name="current_speaker_label">Current speaker label</string>
+    <string name="new_label">New label</string>
+    <string name="rename_speaker_label">Rename Speaker Label</string>
+    <string name="speaker_label_to_lock">Speaker label to lock</string>
+    <string name="known_profile_name">Known profile name</string>
+    <string name="lock_label_to_profile">Lock Label To Profile</string>
+    <string name="transcript_stream">Transcript stream</string>
+    <string name="asr_confidence">ASR %1$d%%  Speaker %2$d%%  %3$s</string>
+    <string name="transcript_confirmed">confirmed</string>
+    <string name="live_tag">live</string>
+
+    <!-- Review screen -->
+    <string name="review_hero_title">Review And Export</string>
+    <string name="review_hero_body">Inspect the summary, review chunk notes, and export the meeting result.</string>
+    <string name="overview">Overview</string>
+    <string name="no_summary_yet">No final summary has been generated yet.</string>
+    <string name="decisions">Decisions</string>
+    <string name="action_items">Action Items</string>
+    <string name="risks">Risks</string>
+    <string name="open_questions">Open Questions</string>
+    <string name="speaker_notes">Speaker Notes</string>
+    <string name="chunk_summaries">Chunk Summaries</string>
+    <string name="no_chunks_yet">No chunk summaries yet.</string>
+    <string name="export_markdown">Export Markdown</string>
+    <string name="export_txt">Export TXT</string>
+    <string name="export_json">Export JSON</string>
+    <string name="last_export">Last export: %s</string>
+    <string name="nothing_generated_yet">Nothing generated yet.</string>
+
+    <!-- Model market screen -->
+    <string name="models_hero_title">Local Models</string>
+    <string name="models_hero_body">Download a LiteRT model to enable on-device summaries.</string>
+    <string name="device_ram_warning">This device has %1$d GB RAM. Larger packs may download, but they might not run smoothly.</string>
+    <string name="downloading_progress">Downloading %1$d MB / %2$d MB</string>
+    <string name="downloaded_ready">Downloaded and ready for LiteRT.</string>
+    <string name="download_failed">The last download failed. Retry when you\'re ready.</string>
+    <string name="download_cancelled">Download cancelled.</string>
+    <string name="cancel_download">Cancel Download</string>
+    <string name="delete_local_model">Delete Local Model</string>
+    <string name="retry_download">Retry Download</string>
+    <string name="download_model">Download Model</string>
+    <string name="needs_more_ram">Needs More RAM</string>
+    <string name="model_ready_hint">LiteRT will use this local model the next time summaries are generated.</string>
+
+    <!-- ViewModel status messages -->
+    <string name="msg_mic_required_enrollment">Microphone permission is required before speaker enrollment.</string>
+    <string name="msg_recording_enrollment">Recording an enrollment sample for %s…</string>
+    <string name="msg_sherpa_enrollment_done">Completed sherpa enrollment for %s.</string>
+    <string name="msg_fallback_enrollment_done">Sherpa speaker model is unavailable; saved a fallback profile for %s.</string>
+    <string name="msg_enrollment_failed">Speaker enrollment failed.</string>
+    <string name="msg_mic_required_meeting">Microphone permission is required before starting a meeting.</string>
+    <string name="msg_starting_capture">Starting meeting capture. Watch the Live tab for transcript updates.</string>
+    <string name="msg_service_start_failed">Unable to start the meeting capture service.</string>
+    <string name="msg_generating_final">Meeting stopped. Generating the final summary.</string>
+    <string name="msg_notes_resumed">Live notes resumed.</string>
+    <string name="msg_notes_paused">Live notes paused.</string>
+    <string name="msg_speaker_renamed">Renamed %1$s to %2$s.</string>
+    <string name="msg_identity_locked">Locked identity mapping for %s.</string>
+    <string name="msg_exported">Exported %s output.</string>
+    <string name="msg_starting_download">Starting download for %s…</string>
+    <string name="msg_download_cancelled">Download cancelled.</string>
+    <string name="msg_model_deleted">Model file deleted.</string>
+
+    <!-- Runtime diagnostics -->
+    <string name="diag_checking_sherpa">Checking sherpa runtime…</string>
+    <string name="diag_checking_speaker">Checking speaker runtime…</string>
+    <string name="diag_checking_llm">Checking summary runtime…</string>
+    <string name="diag_no_live_pack">No live summary pack selected.</string>
+    <string name="diag_no_final_pack">No final summary pack selected.</string>
+    <string name="diag_sherpa_active">Sherpa ASR is active with backend %s.</string>
+    <string name="diag_sherpa_demo_fallback">Demo ASR fallback is active because %s.</string>
+    <string name="diag_sherpa_ready">Sherpa ASR is ready. Start a meeting to begin live transcription.</string>
+    <string name="diag_speaker_active">Sherpa speaker embeddings are active.</string>
+    <string name="diag_speaker_native_missing">Speaker embeddings are unavailable because the sherpa native library is missing.</string>
+    <string name="diag_speaker_model_missing">Speaker embeddings are unavailable because the speaker model is missing: %s.</string>
+    <string name="diag_speaker_ready">Sherpa speaker embeddings are ready.</string>
+    <string name="diag_litert_active">%1$s LiteRT is active.</string>
+    <string name="diag_litert_error">%1$s Last LiteRT error: %2$s.</string>
+    <string name="diag_litert_ready">LiteRT is ready with %s. It will run when summaries are generated.</string>
+    <string name="diag_litert_no_model">No local summary model is ready. The app will use heuristic fallback until you download one in the Models tab.</string>
+    <string name="diag_no_compatible_pack">No compatible %s pack is available for this device.</string>
+    <string name="diag_pack_downloaded">%s is downloaded and ready.</string>
+    <string name="diag_pack_downloading">%s is downloading.</string>
+    <string name="diag_pack_no_file">%s is selected, but no local model file is available yet.</string>
 </resources>

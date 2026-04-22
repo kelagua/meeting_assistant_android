@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- App & Notifications -->
+    <string name="app_name">会议助手</string>
+    <string name="notification_channel_name">会议录制</string>
+    <string name="notification_channel_description">实时离线会议转录与摘要</string>
+    <string name="notification_title">会议进行中</string>
+    <string name="notification_text">正在录制、转录并本地生成会议笔记</string>
+    <string name="notification_channel_download_name">模型下载</string>
+    <string name="notification_channel_download_description">下载AI模型以支持离线摘要</string>
+
+    <!-- Navigation tabs -->
+    <string name="tab_home">准备</string>
+    <string name="tab_people">声纹</string>
+    <string name="tab_live">会议</string>
+    <string name="tab_notes">总结</string>
+    <string name="tab_models">模型</string>
+
+    <!-- Setup screen -->
+    <string name="setup_hero_title">离线会议录制</string>
+    <string name="setup_hero_body">授予权限、确认 sherpa 和 LiteRT 就绪，然后开始会议。</string>
+    <string name="device_profile">设备信息</string>
+    <string name="memory">内存</string>
+    <string name="cpu_cores">CPU 核心数</string>
+    <string name="abi">ABI</string>
+    <string name="device_score">设备评分</string>
+    <string name="permissions">权限</string>
+    <string name="microphone">麦克风</string>
+    <string name="notifications">通知</string>
+    <string name="permission_granted_recording">已授予。可以开始录制。</string>
+    <string name="permission_missing_mic">未授予。麦克风权限是录制会议音频所必需的。</string>
+    <string name="permission_granted_notif">已授予。前台录制通知可正常显示。</string>
+    <string name="permission_missing_notif">未授予。建议授予，以便 Android 保持前台服务可见。</string>
+    <string name="permissions_all_ready">所有请求的权限均已就绪。</string>
+    <string name="permissions_missing">缺少：%s</string>
+    <string name="request_permissions">申请剩余权限</string>
+    <string name="runtime_readiness">运行时就绪状态</string>
+    <string name="asr">语音识别</string>
+    <string name="speaker_id">声纹识别</string>
+    <string name="llm">语言模型</string>
+    <string name="live_pack">实时摘要包</string>
+    <string name="final_pack">总结摘要包</string>
+    <string name="last_error">最近录制错误：%s</string>
+    <string name="quick_start">快速开始</string>
+    <string name="meeting_running">已有会议正在运行：%s</string>
+    <string name="open_live_console">打开实时控制台</string>
+    <string name="meeting_title">会议标题</string>
+    <string name="agenda_or_focus">议程或要点</string>
+    <string name="start_meeting_now">立即开始会议</string>
+    <string name="grant_mic_permission">请先授予麦克风权限，再开始会议。</string>
+    <string name="open_live_tab">打开会议标签</string>
+
+    <!-- Speaker profiles screen -->
+    <string name="speakers_hero_title">发言人档案</string>
+    <string name="speakers_hero_body">录制一小段音频样本，将匿名标签匹配到真实的人。</string>
+    <string name="speaker_runtime">声纹运行时</string>
+    <string name="display_name">显示名称</string>
+    <string name="keep_raw_enrollment_audio">保留原始注册音频</string>
+    <string name="create_speaker_profile">创建发言人档案</string>
+    <string name="enrollment_count">注册次数：%d</string>
+    <string name="audio_retained">原始音频样本已保留。</string>
+    <string name="audio_not_retained">原始音频样本未保留。</string>
+
+    <!-- Live meeting screen -->
+    <string name="live_hero_title">实时录制</string>
+    <string name="live_hero_body">开始录制、查看实时转录更新，在需要生成最终总结时停止。</string>
+    <string name="start_meeting">开始会议</string>
+    <string name="mic_permission_missing">麦克风权限仍未授予。请先在"准备"中授予。</string>
+    <string name="meeting_status">会议状态</string>
+    <string name="recognizer">识别器</string>
+    <string name="live_summaries">实时摘要</string>
+    <string name="speaker_identification">声纹识别</string>
+    <string name="summary_runtime">摘要运行时</string>
+    <string name="paused">已暂停</string>
+    <string name="running">运行中</string>
+    <string name="enabled">已启用</string>
+    <string name="temporarily_degraded">暂时降级</string>
+    <string name="resume_live_notes">恢复实时笔记</string>
+    <string name="pause_live_notes">暂停实时笔记</string>
+    <string name="stop_meeting">结束会议</string>
+    <string name="manual_speaker_corrections">手动发言人校正</string>
+    <string name="current_speaker_label">当前发言人标签</string>
+    <string name="new_label">新标签</string>
+    <string name="rename_speaker_label">重命名发言人标签</string>
+    <string name="speaker_label_to_lock">要锁定的发言人标签</string>
+    <string name="known_profile_name">已知档案名称</string>
+    <string name="lock_label_to_profile">将标签锁定到档案</string>
+    <string name="transcript_stream">转录流</string>
+    <string name="asr_confidence">语音识别 %1$d%%  声纹 %2$d%%  %3$s</string>
+    <string name="transcript_confirmed">已确认</string>
+    <string name="live">实时</string>
+
+    <!-- Review screen -->
+    <string name="review_hero_title">回顾与导出</string>
+    <string name="review_hero_body">检查摘要、回顾分段笔记，并导出会议结果。</string>
+    <string name="overview">概述</string>
+    <string name="no_summary_yet">尚未生成最终摘要。</string>
+    <string name="decisions">决策事项</string>
+    <string name="action_items">行动项</string>
+    <string name="risks">风险点</string>
+    <string name="open_questions">待解决问题</string>
+    <string name="speaker_notes">发言人要点</string>
+    <string name="chunk_summaries">分段摘要</string>
+    <string name="no_chunks_yet">尚无分段摘要。</string>
+    <string name="export_markdown">导出 Markdown</string>
+    <string name="export_txt">导出 TXT</string>
+    <string name="export_json">导出 JSON</string>
+    <string name="last_export">上次导出：%s</string>
+    <string name="nothing_generated_yet">暂无生成内容。</string>
+
+    <!-- Model market screen -->
+    <string name="models_hero_title">本地模型</string>
+    <string name="models_hero_body">下载 LiteRT 模型以启用本地设备端摘要生成。</string>
+    <string name="device_ram_warning">此设备有 %1$d GB 内存。较大的模型包可以下载，但可能无法流畅运行。</string>
+    <string name="downloading_progress">下载中 %1$d MB / %2$d MB</string>
+    <string name="downloaded_ready">已下载，LiteRT 可用。</string>
+    <string name="download_failed">上次下载失败。准备好后重试。</string>
+    <string name="download_cancelled">下载已取消。</string>
+    <string name="cancel_download">取消下载</string>
+    <string name="delete_local_model">删除本地模型</string>
+    <string name="retry_download">重试下载</string>
+    <string name="download_model">下载模型</string>
+    <string name="needs_more_ram">需要更多内存</string>
+    <string name="model_ready_hint">LiteRT 将在下次生成摘要时使用此本地模型。</string>
+
+    <!-- ViewModel status messages -->
+    <string name="msg_mic_required_enrollment">注册声纹前需要麦克风权限。</string>
+    <string name="msg_recording_enrollment">正在为 %s 录制注册样本…</string>
+    <string name="msg_sherpa_enrollment_done">已完成 %s 的 sherpa 注册。</string>
+    <string name="msg_fallback_enrollment_done">Sherpa 声纹模型不可用；已为 %s 保存备用档案。</string>
+    <string name="msg_enrollment_failed">声纹注册失败。</string>
+    <string name="msg_mic_required_meeting">开始会议前需要麦克风权限。</string>
+    <string name="msg_starting_capture">正在启动会议录制。请到"会议"标签查看转录更新。</string>
+    <string name="msg_service_start_failed">无法启动会议录制服务。</string>
+    <string name="msg_generating_final">会议已结束。正在生成最终摘要。</string>
+    <string name="msg_notes_resumed">实时笔记已恢复。</string>
+    <string name="msg_notes_paused">实时笔记已暂停。</string>
+    <string name="msg_speaker_renamed">已将 %1$s 重命名为 %2$s。</string>
+    <string name="msg_identity_locked">已锁定 %s 的身份映射。</string>
+    <string name="msg_exported">已导出 %s 格式。</string>
+    <string name="msg_starting_download">正在开始下载 %s…</string>
+    <string name="msg_download_cancelled">下载已取消。</string>
+    <string name="msg_model_deleted">模型文件已删除。</string>
+
+    <!-- Runtime diagnostics -->
+    <string name="diag_checking_sherpa">正在检查 sherpa 运行时…</string>
+    <string name="diag_checking_speaker">正在检查声纹运行时…</string>
+    <string name="diag_checking_llm">正在检查摘要运行时…</string>
+    <string name="diag_no_live_pack">未选择实时摘要模型包。</string>
+    <string name="diag_no_final_pack">未选择总结摘要模型包。</string>
+    <string name="diag_sherpa_active">Sherpa 语音识别已激活，后端 %s。</string>
+    <string name="diag_sherpa_demo_fallback">演示语音识别回退已激活，原因是：%s。</string>
+    <string name="diag_sherpa_ready">Sherpa 语音识别已就绪。开始会议以启动实时转录。</string>
+    <string name="diag_speaker_active">Sherpa 声纹嵌入已激活。</string>
+    <string name="diag_speaker_native_missing">声纹嵌入不可用，原因是 sherpa 原生库缺失。</string>
+    <string name="diag_speaker_model_missing">声纹嵌入不可用，原因是声纹模型缺失：%s。</string>
+    <string name="diag_speaker_ready">Sherpa 声纹嵌入已就绪。</string>
+    <string name="diag_litert_active">%1$s LiteRT 已激活。</string>
+    <string name="diag_litert_error">%1$s 最近 LiteRT 错误：%2$s。</string>
+    <string name="diag_litert_ready">LiteRT 已就绪，使用 %s。将在生成摘要时运行。</string>
+    <string name="diag_litert_no_model">没有就绪的本地摘要模型。在"模型"标签页下载模型前，应用将使用启发式回退。</string>
+    <string name="diag_no_compatible_pack">没有适用于此设备的兼容 %s 模型包。</string>
+    <string name="diag_pack_downloaded">%s 已下载，可使用。</string>
+    <string name="diag_pack_downloading">%s 正在下载中。</string>
+    <string name="diag_pack_no_file">已选择 %s，但本地模型文件尚不可用。</string>
+</resources>

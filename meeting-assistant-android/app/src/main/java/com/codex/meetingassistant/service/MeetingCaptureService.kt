@@ -28,7 +28,12 @@ class MeetingCaptureService : Service() {
                 val meeting = intent.getParcelableExtraCompat<MeetingPayload>(EXTRA_MEETING)
                 if (meeting != null) {
                     appContainer.sessionCoordinatorScope.launch {
-                        appContainer.sessionCoordinator.start(meeting.toDomain())
+                        runCatching {
+                            appContainer.sessionCoordinator.start(meeting.toDomain())
+                        }.onFailure {
+                            stopForeground(STOP_FOREGROUND_REMOVE)
+                            stopSelf()
+                        }
                     }
                 }
             }

@@ -1,3 +1,5 @@
+@file:OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+
 package com.codex.meetingassistant.data.repo
 
 import android.content.Context
@@ -54,7 +56,12 @@ interface MeetingRepository {
     suspend fun attachAudioAsset(meetingId: String, encryptedFilePath: String, durationMs: Long): AudioAsset
     suspend fun appendTranscriptSegment(segment: TranscriptSegment): TranscriptSegment
     suspend fun renameSpeakerLabel(meetingId: String, oldLabel: String, newLabel: String)
-    suspend fun upsertSpeakerProfile(displayName: String, keepsAudioSamples: Boolean): SpeakerProfile
+    suspend fun upsertSpeakerProfile(
+        displayName: String,
+        keepsAudioSamples: Boolean,
+        embeddingBase64: String,
+        enrollmentCount: Int = 1,
+    ): SpeakerProfile
     suspend fun upsertSpeakerAssignment(
         meetingId: String,
         speakerLabel: String,
@@ -190,13 +197,18 @@ class DefaultMeetingRepository(
         database.speakerAssignmentDao().renameSpeakerLabel(meetingId, oldCipher, newCipher, now)
     }
 
-    override suspend fun upsertSpeakerProfile(displayName: String, keepsAudioSamples: Boolean): SpeakerProfile {
+    override suspend fun upsertSpeakerProfile(
+        displayName: String,
+        keepsAudioSamples: Boolean,
+        embeddingBase64: String,
+        enrollmentCount: Int,
+    ): SpeakerProfile {
         val profile = SpeakerProfile(
             id = UUID.randomUUID().toString(),
             displayName = displayName,
-            embeddingBase64 = "demo-${displayName.lowercase()}",
+            embeddingBase64 = embeddingBase64,
             keepsAudioSamples = keepsAudioSamples,
-            enrollmentCount = 3,
+            enrollmentCount = enrollmentCount.coerceAtLeast(1),
             createdAtEpochMs = System.currentTimeMillis(),
         )
         database.speakerProfileDao().upsertProfile(profile.toEntity())
@@ -461,6 +473,10 @@ class DefaultMeetingRepository(
         minRamGb = minRamGb,
         minScore = minScore,
         supportedLanguages = supportedLanguages,
+        downloadUrl = downloadUrl,
+        localFilePath = localFilePath,
+        hfRepoId = hfRepoId,
+        modelFile = modelFile,
     )
 
     private fun MeetingDetail.toMarkdown(): String {

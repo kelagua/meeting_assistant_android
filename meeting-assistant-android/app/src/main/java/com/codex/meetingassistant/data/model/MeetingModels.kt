@@ -161,6 +161,10 @@ data class ModelPack(
     val minRamGb: Int,
     val minScore: Int,
     val supportedLanguages: List<String>,
+    val downloadUrl: String? = null,
+    val localFilePath: String? = null,
+    val hfRepoId: String? = null,
+    val modelFile: String? = null,
 )
 
 @Serializable
@@ -194,3 +198,78 @@ data class ExportArtifact(
     val format: ExportFormat,
     val filePath: String,
 )
+
+// ========== Model Market ==========
+
+@Serializable
+enum class DownloadStatus {
+    IDLE,
+    PENDING,
+    DOWNLOADING,
+    COMPLETED,
+    FAILED,
+    CANCELLED,
+}
+
+@Serializable
+enum class ModelStage {
+    LIVE_NOTES,
+    FINAL_SUMMARY,
+    BOTH,
+}
+
+@Serializable
+data class ModelConfig(
+    val topK: Int = 64,
+    val topP: Float = 0.95f,
+    val temperature: Float = 1.0f,
+    val maxTokens: Int = 4096,
+    val maxContextLength: Int? = null,
+    val accelerators: String = "gpu,cpu",
+    val visionAccelerator: String? = null,
+)
+
+@Serializable
+data class GalleryModel(
+    val id: String,
+    val displayName: String,
+    val description: String,
+    val modelFile: String,
+    val hfRepoId: String,
+    val sizeInBytes: Long,
+    val sizeLabel: String,
+    val minDeviceMemoryInGb: Int,
+    val stage: ModelStage,
+    val quantization: String,
+    val taskTypes: List<String>,
+    val defaultConfig: ModelConfig? = null,
+) {
+    companion object {
+        // 官方源，稳定性最高
+        private const val HF_OFFICIAL = "https://huggingface.co"
+        // 国内镜像（被某些 VPN 拦截时可用作备选）
+        private const val HF_MIRROR = "https://hf-mirror.com"
+
+        fun buildDownloadUrl(hfRepoId: String, modelFile: String, useMirror: Boolean = false): String {
+            val base = if (useMirror) HF_MIRROR else HF_OFFICIAL
+            return "$base/$hfRepoId/resolve/main/$modelFile"
+        }
+    }
+
+    val downloadUrl: String
+        get() = buildDownloadUrl(hfRepoId, modelFile)
+}
+
+data class DownloadTask(
+    val modelPackId: String,
+    val downloadUrl: String,
+    val localFilePath: String? = null,
+    val bytesDownloaded: Long = 0L,
+    val totalBytes: Long = 0L,
+    val status: DownloadStatus = DownloadStatus.IDLE,
+    val startedAt: Long = 0L,
+    val completedAt: Long? = null,
+) {
+    val progressPercent: Float
+        get() = if (totalBytes > 0) (bytesDownloaded.toFloat() / totalBytes * 100f) else 0f
+}

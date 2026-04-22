@@ -112,6 +112,22 @@ data class ModelPackEntity(
     val minRamGb: Int,
     val minScore: Int,
     val supportedLanguages: List<String>,
+    val downloadUrl: String? = null,
+    val localFilePath: String? = null,
+    val hfRepoId: String? = null,
+    val modelFile: String? = null,
+)
+
+@Entity(tableName = "download_tasks")
+data class DownloadTaskEntity(
+    @PrimaryKey val modelPackId: String,
+    val downloadUrl: String,
+    val localFilePath: String? = null,
+    val bytesDownloaded: Long = 0L,
+    val totalBytes: Long = 0L,
+    val status: String = "IDLE",
+    val startedAt: Long = 0L,
+    val completedAt: Long? = null,
 )
 
 class AppTypeConverters {
@@ -212,6 +228,30 @@ interface ModelPackDao {
 
     @Query("SELECT COUNT(*) FROM model_packs")
     suspend fun count(): Int
+
+    @Query("UPDATE model_packs SET status = :status, localFilePath = :localFilePath WHERE id = :packId")
+    suspend fun updatePackStatus(packId: String, status: String, localFilePath: String?)
+}
+
+@Dao
+interface DownloadTaskDao {
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsertTask(entity: DownloadTaskEntity)
+
+    @Query("SELECT * FROM download_tasks")
+    fun observeAllTasks(): Flow<List<DownloadTaskEntity>>
+
+    @Query("SELECT * FROM download_tasks WHERE modelPackId = :modelPackId")
+    fun observeTask(modelPackId: String): Flow<DownloadTaskEntity?>
+
+    @Query("UPDATE download_tasks SET bytesDownloaded = :bytes, status = :status WHERE modelPackId = :modelPackId")
+    suspend fun updateProgress(modelPackId: String, bytes: Long, status: String)
+
+    @Query("DELETE FROM download_tasks WHERE modelPackId = :modelPackId")
+    suspend fun deleteTask(modelPackId: String)
+
+    @Query("UPDATE download_tasks SET status = :status WHERE modelPackId = :modelPackId")
+    suspend fun updateStatus(modelPackId: String, status: String)
 }
 
 @Database(
@@ -224,8 +264,9 @@ interface ModelPackDao {
         ChunkSummaryEntity::class,
         MeetingSummaryEntity::class,
         ModelPackEntity::class,
+        DownloadTaskEntity::class,
     ],
-    version = 1,
+    version = 2,
     exportSchema = false,
 )
 @TypeConverters(AppTypeConverters::class)
@@ -238,4 +279,5 @@ abstract class MeetingAssistantDatabase : RoomDatabase() {
     abstract fun chunkSummaryDao(): ChunkSummaryDao
     abstract fun meetingSummaryDao(): MeetingSummaryDao
     abstract fun modelPackDao(): ModelPackDao
+    abstract fun downloadTaskDao(): DownloadTaskDao
 }
