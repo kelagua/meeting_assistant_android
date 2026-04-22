@@ -1,0 +1,108 @@
+{
+  "version": "1.0.12",
+  "generatedAt": "2026-04-18",
+  "models": [
+    {
+      "id": "qwen2.5-1.5b-instruct",
+      "displayName": "Qwen2.5-1.5B-Instruct",
+      "description": "轻量级中英双语模型，适合会议摘要，响应速度快，内存占用低。",
+      "modelFile": "Qwen2.5-1.5B-Instruct_multi-prefill-seq_q8_ekv4096.litertlm",
+      "hfRepoId": "litert-community/Qwen2.5-1.5B-Instruct",
+      "sizeInBytes": 1597931520,
+      "sizeLabel": "1.5 GB",
+      "minDeviceMemoryInGb": 6,
+      "stage": "BOTH",
+      "quantization": "int8",
+      "taskTypes": ["llm_chat", "llm_prompt_lab"],
+      "defaultConfig": {
+        "topK": 20,
+        "topP": 0.8,
+        "temperature": 0.7,
+        "maxTokens": 4096,
+        "accelerators": "gpu,cpu"
+      }
+    },
+    {
+      "id": "gemma3-1b-it",
+      "displayName": "Gemma3-1B-IT",
+      "description": "Google Gemma 3 系列最小模型，极致轻量，适合低端设备或快速摘要。",
+      "modelFile": "gemma3-1b-it-int4.litertlm",
+      "hfRepoId": "litert-community/Gemma3-1B-IT",
+      "sizeInBytes": 584417280,
+      "sizeLabel": "560 MB",
+      "minDeviceMemoryInGb": 6,
+      "stage": "BOTH",
+      "quantization": "int4",
+      "taskTypes": ["llm_chat", "llm_prompt_lab"],
+      "defaultConfig": {
+        "topK": 64,
+        "topP": 0.95,
+        "temperature": 1.0,
+        "maxTokens": 1024,
+        "accelerators": "gpu,cpu"
+      }
+    },
+    {
+      "id": "deepseek-r1-distill-qwen-1.5b",
+      "displayName": "DeepSeek-R1-Distill-Qwen-1.5B",
+      "description": "推理能力强，支持思维链（Chain-of-Thought），适合需要深度分析的会议。",
+      "modelFile": "DeepSeek-R1-Distill-Qwen-1.5B_multi-prefill-seq_q8_ekv4096.litertlm",
+      "hfRepoId": "litert-community/DeepSeek-R1-Distill-Qwen-1.5B",
+      "sizeInBytes": 1833451520,
+      "sizeLabel": "1.7 GB",
+      "minDeviceMemoryInGb": 6,
+      "stage": "FINAL_SUMMARY",
+      "quantization": "int8",
+      "taskTypes": ["llm_chat", "llm_prompt_lab"],
+      "defaultConfig": {
+        "topK": 64,
+        "topP": 0.95,
+        "temperature": 1.0,
+        "maxTokens": 4096,
+        "accelerators": "gpu,cpu"
+      }
+    },
+    {
+      "id": "gemma-4-e2b-it",
+      "displayName": "Gemma-4-E2B-IT",
+      "description": "Google Gemma 4 系列旗舰模型，支持多模态输入（文本/图像/音频），32K 上下文。",
+      "modelFile": "gemma-4-E2B-it.litertlm",
+      "hfRepoId": "litert-community/gemma-4-E2B-it-litert-lm",
+      "sizeInBytes": 2583085056,
+      "sizeLabel": "2.5 GB",
+      "minDeviceMemoryInGb": 8,
+      "stage": "BOTH",
+      "quantization": "fp16",
+      "taskTypes": ["llm_chat", "llm_prompt_lab", "llm_agent_chat", "llm_ask_image", "llm_ask_audio"],
+      "defaultConfig": {
+        "topK": 64,
+        "topP": 0.95,
+        "temperature": 1.0,
+        "maxContextLength": 32000,
+        "maxTokens": 4000,
+        "accelerators": "gpu,cpu",
+        "visionAccelerator": "gpu"
+      }
+    },
+    {
+      "id": "gemma-3n-e2b-it",
+      "displayName": "Gemma-3n-E2B-it",
+      "description": "Gemma 3n 系列，支持文本、图像、音频多模态输入，适合富媒体会议记录。",
+      "modelFile": "gemma-3n-E2B-it-int4.litertlm",
+      "hfRepoId": "google/gemma-3n-E2B-it-litert-lm",
+      "sizeInBytes": 3655827456,
+      "sizeLabel": "3.5 GB",
+      "minDeviceMemoryInGb": 8,
+      "stage": "BOTH",
+      "quantization": "int4",
+      "taskTypes": ["llm_chat", "llm_prompt_lab", "llm_ask_image", "llm_ask_audio"],
+      "defaultConfig": {
+        "topK": 64,
+        "topP": 0.95,
+        "temperature": 1.0,
+        "maxTokens": 4096,
+        "accelerators": "cpu,gpu"
+      }
+    }
+  ]
+}

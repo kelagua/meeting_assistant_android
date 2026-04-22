@@ -9,7 +9,6 @@ build/
 .android-home/
 .gradle-home/
 app/build/
-app/src/main/assets/
 
 # IDE
 .idea/
