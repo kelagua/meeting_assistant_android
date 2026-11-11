@@ -9,6 +9,11 @@ import com.k2fsa.sherpa.onnx.OnlineModelConfig
 import com.k2fsa.sherpa.onnx.OnlineRecognizer
 import com.k2fsa.sherpa.onnx.OnlineRecognizerConfig
 import com.k2fsa.sherpa.onnx.OnlineTransducerModelConfig
+import com.k2fsa.sherpa.onnx.OfflineModelConfig
+import com.k2fsa.sherpa.onnx.OfflineRecognizer
+import com.k2fsa.sherpa.onnx.OfflineRecognizerConfig
+import com.k2fsa.sherpa.onnx.OfflineZipformerCtcModelConfig
+import com.k2fsa.sherpa.onnx.QnnConfig
 import com.k2fsa.sherpa.onnx.SpeakerEmbeddingExtractor
 import com.k2fsa.sherpa.onnx.SpeakerEmbeddingExtractorConfig
 import java.nio.ByteBuffer
@@ -67,6 +72,37 @@ object SherpaOnnxSupport {
         }.getOrNull()
     }
 
+    fun createQnnOfflineRecognizer(context: Context): OfflineRecognizer? {
+        if (!isNativeLibraryAvailable || !hasQnnAssets(context.assets)) return null
+        return runCatching {
+            OfflineRecognizer.prependAdspLibraryPath(context.applicationInfo.nativeLibraryDir)
+            OfflineRecognizer(
+                assetManager = context.assets,
+                config = OfflineRecognizerConfig(
+                    featConfig = FeatureConfig(sampleRate = 16_000, featureDim = 80, dither = 0.0f),
+                    modelConfig = OfflineModelConfig(
+                        zipformerCtc = OfflineZipformerCtcModelConfig(
+                            model = QnnAssets.model,
+                            qnnConfig = QnnConfig(
+                                backendLib = "libQnnHtp.so",
+                                systemLib = "libQnnSystem.so",
+                                htpPerfMode = true,
+                            ),
+                        ),
+                        tokens = QnnAssets.tokens,
+                        numThreads = 2,
+                        debug = false,
+                        provider = "qnn",
+                        modelType = "zipformer_ctc",
+                    ),
+                    decodingMethod = "greedy_search",
+                ),
+            )
+        }.onFailure {
+            Log.e(TAG, "Failed to initialize sherpa-onnx QNN offline recognizer", it)
+        }.getOrNull()
+    }
+
     fun createSpeakerExtractor(context: Context): SpeakerEmbeddingExtractor? {
         if (!isNativeLibraryAvailable) return null
         val model = resolveExistingAsset(context.assets, speakerAssets.modelCandidates) ?: return null
@@ -97,6 +133,9 @@ object SherpaOnnxSupport {
             emptyList()
         }
 
+    fun hasQnnAssets(assetManager: AssetManager): Boolean =
+        listOf(QnnAssets.model, QnnAssets.tokens).all { assetExists(assetManager, it) }
+
     fun pcm16ToFloatArray(bytes: ByteArray): FloatArray {
         if (bytes.isEmpty()) return FloatArray(0)
         val sampleCount = bytes.size / 2
@@ -108,6 +147,7 @@ object SherpaOnnxSupport {
             samples[sampleIndex++] = sample / Short.MAX_VALUE.toFloat()
             byteIndex += 2
         }
+
         return if (sampleIndex == sampleCount) samples else samples.copyOf(sampleIndex)
     }
 
@@ -164,6 +204,12 @@ object SherpaOnnxSupport {
             assetManager.open(path).close()
             true
         }.getOrDefault(false)
+}
+
+private object QnnAssets {
+    private const val modelDir = "sherpa/qnn/zh-zipformer"
+    const val model = "$modelDir/libmodel.so"
+    const val tokens = "$modelDir/tokens.txt"
 }
 
 data class AsrAssetCandidates(

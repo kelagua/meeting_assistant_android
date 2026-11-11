@@ -5,6 +5,8 @@ import com.codex.meetingassistant.data.model.TranscriptSegment
 import com.codex.meetingassistant.runtime.audio.AudioFrame
 import com.codex.meetingassistant.runtime.sherpa.SherpaOnnxSupport
 import com.codex.meetingassistant.runtime.speaker.SpeakerEmbeddingStore
+import com.k2fsa.sherpa.onnx.OfflineRecognizer
+import com.k2fsa.sherpa.onnx.OfflineStream
 import com.k2fsa.sherpa.onnx.OnlineRecognizer
 import com.k2fsa.sherpa.onnx.OnlineStream
 import com.k2fsa.sherpa.onnx.SpeakerEmbeddingExtractor
@@ -102,18 +104,21 @@ class SherpaSpeechRecognizer(
     private val events = MutableSharedFlow<TranscriptSegment>(extraBufferCapacity = 32)
     private val finalizedSegments = mutableListOf<TranscriptSegment>()
     private val utteranceAudio = FloatSampleBuffer()
+    private val qnnAudio = FloatSampleBuffer()
 
     private var fallbackForwardJob: Job? = null
     private var currentEngineLabel = "sherpa-onnx"
     private var activeMeetingId: String? = null
     private var recognizer: OnlineRecognizer? = null
     private var recognizerStream: OnlineStream? = null
+    private var qnnRecognizer: OfflineRecognizer? = null
     private var speakerExtractor: SpeakerEmbeddingExtractor? = null
     private var acceptedSamples: Long = 0L
     private var currentUtteranceStartSample: Long? = null
     private var currentSegmentId: String? = null
     private var currentPartialText: String = ""
     private var usingFallback = false
+    private var usingQnn = false
 
     override suspend fun start(config: RecognitionConfig) {
         stop()
@@ -123,12 +128,16 @@ class SherpaSpeechRecognizer(
         clearCurrentUtterance()
         speakerEmbeddingStore.reset()
 
-        recognizer = SherpaOnnxSupport.createOnlineRecognizer(context)
+        qnnRecognizer = SherpaOnnxSupport.createQnnOfflineRecognizer(context)
+        usingQnn = qnnRecognizer != null
+        recognizer = if (usingQnn) null else SherpaOnnxSupport.createOnlineRecognizer(context)
         speakerExtractor = SherpaOnnxSupport.createSpeakerExtractor(context)
         recognizerStream = recognizer?.createStream()
-        usingFallback = recognizer == null || recognizerStream == null
+        usingFallback = !usingQnn && (recognizer == null || recognizerStream == null)
         currentEngineLabel = if (usingFallback) {
             buildFallbackLabel()
+        } else if (usingQnn) {
+            "sherpa-onnx/qnn-htp-v79"
         } else {
             if (speakerExtractor != null) "sherpa-onnx/asr+speaker" else "sherpa-onnx/asr"
         }
@@ -141,6 +150,11 @@ class SherpaSpeechRecognizer(
     override suspend fun accept(frame: AudioFrame) {
         if (usingFallback) {
             fallback.accept(frame)
+            return
+        }
+
+        if (usingQnn) {
+            acceptQnn(frame)
             return
         }
 
@@ -173,6 +187,11 @@ class SherpaSpeechRecognizer(
             return fallback.finalizeSegments()
         }
 
+        if (usingQnn) {
+            decodeQnnWindow(force = true)
+            return finalizedSegments.toList()
+        }
+
         val stream = recognizerStream
         val localRecognizer = recognizer
         if (stream != null && localRecognizer != null) {
@@ -194,14 +213,81 @@ class SherpaSpeechRecognizer(
         recognizerStream = null
         recognizer?.release()
         recognizer = null
+        qnnRecognizer?.release()
+        qnnRecognizer = null
         speakerExtractor?.release()
         speakerExtractor = null
 
         usingFallback = false
+        usingQnn = false
         currentEngineLabel = "sherpa-onnx"
         activeMeetingId = null
         acceptedSamples = 0L
         clearCurrentUtterance()
+    }
+
+    private suspend fun acceptQnn(frame: AudioFrame) {
+        val samples = SherpaOnnxSupport.pcm16ToFloatArray(frame.bytes)
+        if (samples.isEmpty()) return
+        if (currentUtteranceStartSample == null) {
+            currentUtteranceStartSample = acceptedSamples
+        }
+        qnnAudio.append(samples)
+        utteranceAudio.append(samples)
+        acceptedSamples += samples.size
+        if (qnnAudio.size() >= QNN_WINDOW_SAMPLES) {
+            decodeQnnWindow(force = false)
+        }
+    }
+
+    private suspend fun decodeQnnWindow(force: Boolean) {
+        val localRecognizer = qnnRecognizer ?: return
+        if (qnnAudio.isEmpty() || (!force && qnnAudio.size() < QNN_WINDOW_SAMPLES)) return
+        val samples = qnnAudio.toFloatArray()
+        val stream: OfflineStream = localRecognizer.createStream()
+        try {
+            stream.acceptWaveform(samples = samples, sampleRate = SAMPLE_RATE_HZ)
+            stream.inputFinished()
+            localRecognizer.decode(stream)
+            val text = localRecognizer.getResult(stream).text.trim()
+            if (text.isNotBlank()) {
+                emitFinalText(
+                    text = text,
+                    startSample = currentUtteranceStartSample ?: (acceptedSamples - samples.size),
+                    endSample = acceptedSamples,
+                    speakerSamples = utteranceAudio.toFloatArray(),
+                )
+            }
+        } finally {
+            stream.release()
+        }
+        qnnAudio.clear()
+        utteranceAudio.clear()
+        currentUtteranceStartSample = acceptedSamples
+    }
+
+    private suspend fun emitFinalText(
+        text: String,
+        startSample: Long,
+        endSample: Long,
+        speakerSamples: FloatArray,
+    ) {
+        val meetingId = activeMeetingId ?: return
+        val speakerObservation = identifyAnonymousSpeaker(speakerSamples)
+        val segment = TranscriptSegment(
+            id = UUID.randomUUID().toString(),
+            meetingId = meetingId,
+            startMs = sampleToMs(startSample),
+            endMs = sampleToMs(endSample),
+            text = text,
+            speakerLabel = speakerObservation?.first ?: DEFAULT_SPEAKER_LABEL,
+            speakerConfidence = speakerObservation?.second ?: 0.58f,
+            asrConfidence = 0.89f,
+            isFinal = true,
+            createdAtEpochMs = System.currentTimeMillis(),
+        )
+        finalizedSegments += segment
+        events.emit(segment)
     }
 
     private suspend fun startFallback(config: RecognitionConfig) {
@@ -305,6 +391,7 @@ class SherpaSpeechRecognizer(
 
     private fun clearCurrentUtterance() {
         utteranceAudio.clear()
+        qnnAudio.clear()
         currentUtteranceStartSample = null
         currentSegmentId = null
         currentPartialText = ""
@@ -314,6 +401,7 @@ class SherpaSpeechRecognizer(
 
     private companion object {
         const val SAMPLE_RATE_HZ = 16_000
+        const val QNN_WINDOW_SAMPLES = SAMPLE_RATE_HZ * 10
         const val DEFAULT_SPEAKER_LABEL = "Speaker A"
         const val PENDING_SPEAKER_LABEL = "Pending Speaker"
     }
@@ -340,6 +428,10 @@ private class FloatSampleBuffer {
     }
 
     fun toFloatArray(): FloatArray = values.copyOf(size)
+
+    fun size(): Int = size
+
+    fun isEmpty(): Boolean = size == 0
 
     fun clear() {
         size = 0
