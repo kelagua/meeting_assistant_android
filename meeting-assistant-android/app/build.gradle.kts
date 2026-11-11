@@ -76,6 +76,9 @@ dependencies {
     // LiteRT-LM for on-device LLM inference (Kotlin 2.3.0+ required)
     implementation("com.google.ai.edge.litertlm:litertlm-android:0.9.0")
 
+    // sherpa-onnx streaming ASR and speaker embeddings.
+    implementation("com.github.k2-fsa.sherpa-onnx:sherpa-onnx:v2.0.1")
+
     implementation(composeBom)
     androidTestImplementation(composeBom)
     implementation("androidx.compose.ui:ui")
