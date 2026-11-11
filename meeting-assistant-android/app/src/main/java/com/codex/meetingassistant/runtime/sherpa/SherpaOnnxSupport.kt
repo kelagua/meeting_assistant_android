@@ -86,7 +86,6 @@ object SherpaOnnxSupport {
                             qnnConfig = QnnConfig(
                                 backendLib = "libQnnHtp.so",
                                 systemLib = "libQnnSystem.so",
-                                htpPerfMode = true,
                             ),
                         ),
                         tokens = QnnAssets.tokens,

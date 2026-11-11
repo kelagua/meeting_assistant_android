@@ -247,7 +247,6 @@ class SherpaSpeechRecognizer(
         val stream: OfflineStream = localRecognizer.createStream()
         try {
             stream.acceptWaveform(samples = samples, sampleRate = SAMPLE_RATE_HZ)
-            stream.inputFinished()
             localRecognizer.decode(stream)
             val text = localRecognizer.getResult(stream).text.trim()
             if (text.isNotBlank()) {
