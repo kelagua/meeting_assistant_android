@@ -20,6 +20,7 @@ import androidx.core.content.ContextCompat
 import com.google.ai.edge.litertlm.Engine
 import com.google.ai.edge.litertlm.EngineConfig
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.flow.toList
 import java.io.File
 import java.io.FileOutputStream
 import java.text.DateFormat
@@ -238,13 +239,16 @@ class MainActivity : AppCompatActivity() {
     private fun testLiteRt() {
         thread(name = "litert-test") {
             val result = runCatching {
-                Engine(EngineConfig(modelPath = modelFile.absolutePath)).use { engine ->
+                val engine = Engine(EngineConfig(modelPath = modelFile.absolutePath))
+                try {
                     engine.initialize()
                     runBlocking {
                         engine.createConversation().use { conversation ->
                             conversation.sendMessageAsync("请只回复：LiteRT 本地模型正常。").toList().joinToString("")
                         }
                     }
+                } finally {
+                    engine.close()
                 }
             }.getOrElse { "LiteRT 初始化失败：${it.message}" }
             runOnUiThread { status.text = result }
