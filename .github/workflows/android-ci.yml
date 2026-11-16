@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - codex/meeting-assistant-android-mvp
+      - clean-qnn-litert
   pull_request:
   workflow_dispatch:
 
@@ -17,7 +18,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: meeting-assistant-android
+        working-directory: sherpa-qnn-meeting-assistant
 
     steps:
       - name: Checkout
@@ -46,4 +47,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: app-debug-apk
-          path: meeting-assistant-android/app/build/outputs/apk/debug/*.apk
+          path: sherpa-qnn-meeting-assistant/app/build/outputs/apk/debug/*.apk
